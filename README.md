@@ -7,6 +7,10 @@
 
 A high-performance real-time computer vision platform featuring distributed video streaming, event-driven processing, and pluggable vision backends.
 
+**🚀 Live Production URLs:**
+- **Frontend (Vercel):** [https://cogni-stream-plum.vercel.app/](https://cogni-stream-plum.vercel.app/)
+- **Backend (Render):** [https://cognistream.onrender.com](https://cognistream.onrender.com)
+
 Built with **FastAPI**, **MediaPipe**, **OpenCV**, **SQLAlchemy Async**, **Neon / PostgreSQL**, and **React (Vite)**.
 
 Designed around **Domain-Driven Design (DDD)** principles, **MessageBus/EventBus decoupling**, **Centroid Entity Tracking**, and **Async ROI Database Batching**.
