@@ -135,12 +135,45 @@ async def receive_stream(websocket: WebSocket, camera_id: str = "default"):
                 fps_frame_count = 0
                 fps_start_time = now
 
-            # Ack back to camera client
+            # Extract live face analysis payload
+            detections_payload = []
+            if vision_pipeline and ctx and ctx.tracked_detections:
+                w_denom = max(1, ctx.frame.width or 480)
+                h_denom = max(1, ctx.frame.height or 360)
+                for det in ctx.tracked_detections:
+                    em = det.emotion or "Neutral"
+                    em_conf = det.emotion_confidence if det.emotion_confidence is not None else 0.0
+                    condition_map = {
+                        "Happy": "Engaged & Positive 😊",
+                        "Neutral": "Calm & Attentive 😐",
+                        "Surprise": "High Alert / Alerted 😲",
+                        "Sad": "Fatigue / Low Energy 😔",
+                        "Angry": "Tension / Agitation 😠",
+                        "Fear": "Distressed / High Stress 😨",
+                        "Disgust": "Aversion / Disapproval 😒",
+                        "Contempt": "Skeptical / Evaluating 🤔",
+                    }
+                    cond_desc = condition_map.get(em, "Analyzing State")
+                    detections_payload.append({
+                        "track_id": det.track_id,
+                        "emotion": em,
+                        "emotion_confidence": round(em_conf, 1),
+                        "condition": cond_desc,
+                        "probabilities": det.emotion_probabilities or {},
+                        "x": round(det.x_min / w_denom, 3),
+                        "y": round(det.y_min / h_denom, 3),
+                        "width": round((det.x_max - det.x_min) / w_denom, 3),
+                        "height": round((det.y_max - det.y_min) / h_denom, 3),
+                        "confidence": round(det.confidence, 3),
+                    })
+
+            # Ack back to camera client with instant real-time AI face analysis
             await websocket.send_json({
                 "status": "ok",
                 "camera_id": camera_id,
                 "frame_id": frame_id,
-                "faces": faces_found if 'faces_found' in locals() else 0,
+                "faces": len(detections_payload),
+                "detections": detections_payload,
                 "ts": datetime.now(timezone.utc).isoformat(),
             })
 

@@ -1,7 +1,7 @@
 /* ── Layout ── */
 
 .app {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 32px 24px;
 }
@@ -10,52 +10,68 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
-.app-header h1 {
-  font-size: 1.35rem;
-  font-weight: 600;
+.header-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.header-title-group h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
   letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-title-group .subtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
 .status-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.78rem;
+  gap: 8px;
+  font-size: 0.8rem;
   font-weight: 500;
-  padding: 5px 12px;
+  padding: 6px 14px;
   border-radius: 20px;
-  background: var(--green-glow);
-  color: var(--green);
-  border: 1px solid rgba(34, 197, 94, 0.2);
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.1);
 }
 
 .status-badge.offline {
-  background: var(--red-glow);
-  color: var(--red);
-  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.25);
+  box-shadow: none;
 }
 
 .status-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: currentColor;
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
 }
 
 /* ── Main Grid ── */
 
 .main-grid {
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 1fr 380px;
   gap: 20px;
   align-items: start;
 }
@@ -67,6 +83,7 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
 .video-panel-header {
@@ -82,11 +99,12 @@
 
 .video-container {
   position: relative;
-  background: #000;
-  aspect-ratio: 16 / 9;
+  background: #09090b;
+  aspect-ratio: 4 / 3;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 380px;
 }
 
 .video-container img {
@@ -97,17 +115,18 @@
 
 .video-placeholder {
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   text-align: center;
+  padding: 24px;
 }
 
 .video-placeholder span {
   display: block;
-  font-size: 2rem;
-  margin-bottom: 8px;
+  font-size: 2.4rem;
+  margin-bottom: 12px;
 }
 
-/* ── ROI Dashboard ── */
+/* ── ROI & Condition Dashboard ── */
 
 .roi-dashboard {
   display: flex;
@@ -120,12 +139,7 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   padding: 18px;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.roi-card:hover {
-  background: var(--bg-card-hover);
-  border-color: rgba(99, 102, 241, 0.15);
+  transition: all 0.2s ease;
 }
 
 .roi-card-title {
@@ -134,10 +148,138 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
-/* ── Stat rows ── */
+/* ── Condition Hero Card ── */
+
+.condition-card {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(30, 27, 75, 0.4) 100%);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.condition-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.condition-emoji {
+  font-size: 2.8rem;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+  animation: bounce-subtle 3s ease-in-out infinite;
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.condition-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.condition-state {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.condition-sub {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.condition-sub strong {
+  color: #a5b4fc;
+}
+
+.track-pill {
+  margin-top: 10px;
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+}
+
+/* ── 8-Class Emotion Spectrum ── */
+
+.spectrum-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.spectrum-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.spectrum-row.dominant {
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+}
+
+.spectrum-label-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.spectrum-emoji {
+  font-size: 1rem;
+}
+
+.spectrum-name {
+  color: var(--text-secondary);
+}
+
+.spectrum-row.dominant .spectrum-name {
+  color: #fff;
+}
+
+.spectrum-bar-wrap {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.spectrum-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.spectrum-val {
+  width: 44px;
+  text-align: right;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.spectrum-row.dominant .spectrum-val {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ── Geometry & Stat Rows ── */
 
 .stat-grid {
   display: grid;
@@ -152,7 +294,7 @@
 }
 
 .stat-label {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 500;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -160,7 +302,7 @@
 }
 
 .stat-value {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
@@ -172,87 +314,31 @@
 
 .metric-bar-bg {
   width: 100%;
-  height: 5px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.08);
   border-radius: 4px;
   overflow: hidden;
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
 .metric-bar-fill {
   height: 100%;
   background: #3b82f6;
   border-radius: 4px;
-  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .metric-bar-fill.accent {
   background: #8b5cf6;
 }
 
-.metric-bar-fill.green {
-  background: #10b981;
-}
-
-.confidence-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.track-badge {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 12px;
-  background: rgba(99, 102, 241, 0.2);
-  color: #818cf8;
-  border: 1px solid rgba(99, 102, 241, 0.3);
-}
-
-/* ── ROI History List ── */
-
-.roi-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.roi-list-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: var(--radius-sm);
-  font-size: 0.78rem;
-  border: 1px solid transparent;
-  transition: border-color 0.15s ease;
-}
-
-.roi-list-item:hover {
-  border-color: var(--border-color);
-}
-
-.roi-coords {
-  font-family: 'SF Mono', 'Fira Code', monospace;
-  font-size: 0.72rem;
-  color: var(--text-secondary);
-}
-
-.roi-time {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-}
-
-/* ── Empty & Error states ── */
+/* ── States & Alerts ── */
 
 .empty-state {
   text-align: center;
-  padding: 20px;
+  padding: 16px;
   color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 
 .error-banner {
@@ -267,7 +353,7 @@
 
 /* ── Responsive ── */
 
-@media (max-width: 768px) {
+@media (max-width: 860px) {
   .main-grid {
     grid-template-columns: 1fr;
   }

@@ -50,6 +50,7 @@ export default function VideoStreamer({
   width = 640,
   height = 480,
   onStatusChange,
+  onAnalysisUpdate,
 }) {
   const [status, setStatus] = useState(Status.IDLE);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -158,6 +159,19 @@ export default function VideoStreamer({
       intervalRef.current = setInterval(captureFrame, 1000 / fps);
     };
 
+    ws.onmessage = (event) => {
+      try {
+        if (typeof event.data === "string") {
+          const payload = JSON.parse(event.data);
+          if (payload.detections && onAnalysisUpdate) {
+            onAnalysisUpdate(payload.detections);
+          }
+        }
+      } catch (err) {
+        // ignore non-json messages
+      }
+    };
+
     ws.onclose = () => {
       if (unmounted.current) return;
       if (intervalRef.current) {
@@ -178,7 +192,7 @@ export default function VideoStreamer({
     ws.onerror = () => {
       // onclose fires right after — reconnect handled there
     };
-  }, [wsUrl, fps, captureFrame, updateStatus]);
+  }, [wsUrl, fps, captureFrame, updateStatus, onAnalysisUpdate]);
 
   // Keep connectWsRef in sync so reconnect always calls latest version
   useEffect(() => {
