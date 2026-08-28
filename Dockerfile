@@ -34,6 +34,10 @@ COPY --from=builder /install /usr/local
 # Copy application code
 COPY . .
 
+# Pre-download vision models to bake them directly into the image
+ADD https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite /app/app/services/blaze_face_short_range.tflite
+ADD https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_full_range/float16/1/blaze_face_full_range.tflite /app/app/services/blaze_face_full_range.tflite
+
 # Non-root user for security
 # WHY: Running as root inside a container is a security risk.
 # A compromised app running as root = compromised host.

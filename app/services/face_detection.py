@@ -55,34 +55,51 @@ class BaseDetector(ABC):
         self.close()
 
 
+def _ensure_model_file(filename: str, urls: List[str]) -> str:
+    """Ensure a MediaPipe model asset exists locally, downloading if necessary."""
+    import os
+    import urllib.request
+
+    base_dir = os.path.dirname(__file__)
+    target_path = os.path.join(base_dir, filename)
+
+    if os.path.exists(target_path) and os.path.getsize(target_path) > 1000:
+        return target_path
+
+    for url in urls:
+        try:
+            logger.info("Downloading MediaPipe model [%s] from %s...", filename, url)
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp, open(target_path, "wb") as f:
+                f.write(resp.read())
+            if os.path.exists(target_path) and os.path.getsize(target_path) > 1000:
+                logger.info("Successfully downloaded model to %s (%d bytes)", target_path, os.path.getsize(target_path))
+                return target_path
+        except Exception as e:
+            logger.warning("Failed to download model from %s: %s", url, e)
+
+    return target_path
+
+
 class MediaPipeDetector(BaseDetector):
     """MediaPipe BlazeFace Short-Range (<2m) face detector implementation using Tasks API."""
 
     def __init__(self, min_confidence: float = 0.35):
-        import os
         import mediapipe as mp
         from mediapipe.tasks.python import BaseOptions
         from mediapipe.tasks.python.vision import FaceDetector, FaceDetectorOptions
 
         self.min_confidence = min_confidence
-        base_dir = os.path.dirname(__file__)
-        # Uses short-range blazeface model via Tasks API
-        model_path = os.path.join(base_dir, "face_detector.task")
-        if not os.path.exists(model_path):
-            try:
-                import urllib.request
-                logger.info("Downloading MediaPipe Face Detector task model...")
-                urllib.request.urlretrieve(
-                    "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.task",
-                    model_path
-                )
-            except Exception as e:
-                logger.error("Failed to download Face Detector model: %s", e)
+        model_urls = [
+            "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite",
+            "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/latest/blaze_face_short_range.tflite",
+        ]
+        model_path = _ensure_model_file("blaze_face_short_range.tflite", model_urls)
 
         options = FaceDetectorOptions(
             base_options=BaseOptions(model_asset_path=model_path),
             min_detection_confidence=min_confidence,
-            running_mode=mp.tasks.vision.RunningMode.IMAGE
+            running_mode=mp.tasks.vision.RunningMode.IMAGE,
         )
         self._detector = FaceDetector.create_from_options(options)
 
@@ -150,29 +167,21 @@ class MediaPipeFullRangeDetector(BaseDetector):
     """MediaPipe BlazeFace Full-Range (<5m) face detector task implementation."""
 
     def __init__(self, min_confidence: float = 0.35):
-        import os
         import mediapipe as mp
         from mediapipe.tasks.python import BaseOptions
         from mediapipe.tasks.python.vision import FaceDetector, FaceDetectorOptions
 
         self.min_confidence = min_confidence
-        base_dir = os.path.dirname(__file__)
-        model_path = os.path.join(base_dir, "face_detector.task")
-        if not os.path.exists(model_path):
-            try:
-                import urllib.request
-                logger.info("Downloading MediaPipe Face Detector task model...")
-                urllib.request.urlretrieve(
-                    "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.task",
-                    model_path
-                )
-            except Exception as e:
-                logger.error("Failed to download Face Detector model: %s", e)
+        model_urls = [
+            "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_full_range/float16/1/blaze_face_full_range.tflite",
+            "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_full_range/float16/latest/blaze_face_full_range.tflite",
+        ]
+        model_path = _ensure_model_file("blaze_face_full_range.tflite", model_urls)
 
         options = FaceDetectorOptions(
             base_options=BaseOptions(model_asset_path=model_path),
             min_detection_confidence=min_confidence,
-            running_mode=mp.tasks.vision.RunningMode.IMAGE
+            running_mode=mp.tasks.vision.RunningMode.IMAGE,
         )
         self._detector = FaceDetector.create_from_options(options)
 
@@ -291,12 +300,16 @@ def register_detector(name: str, detector_cls: Type[BaseDetector]) -> None:
 
 
 def get_detector(name: str, **kwargs) -> BaseDetector:
-    """Instantiate detector implementation from registry."""
+    """Instantiate detector implementation from registry with resilient fallback."""
     key = name.lower()
     if key not in _DETECTOR_REGISTRY:
         logger.warning("Detector '%s' not found in registry. Defaulting to 'mediapipe'.", name)
         key = "mediapipe"
-    return _DETECTOR_REGISTRY[key](**kwargs)
+    try:
+        return _DETECTOR_REGISTRY[key](**kwargs)
+    except Exception as e:
+        logger.error("Failed to initialize detector '%s': %s. Falling back to MockDetector.", key, e)
+        return MockDetector(simulate_face=False)
 
 
 def list_detectors() -> List[Dict[str, str]]:
