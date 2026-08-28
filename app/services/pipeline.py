@@ -3,6 +3,7 @@ Vision Processing Pipeline architecture.
 Defines modular processing stages (Decode, Detect, Track, Emotion, Annotate, Publish).
 """
 
+import cv2
 import io
 import time
 import logging
@@ -10,7 +11,6 @@ from abc import ABC, abstractmethod
 from collections import deque
 from typing import Dict, List, Optional
 import numpy as np
-from PIL import Image
 
 from app.domain.frame import Frame
 from app.domain.detection import DetectionResult, BoundingBox
@@ -48,7 +48,7 @@ class PipelineStage(ABC):
 
 
 class DecodeStage(PipelineStage):
-    """Stage 1: Decode raw JPEG binary bytes into NumPy RGB image array."""
+    """Stage 1: Fast OpenCV decode raw JPEG binary bytes into NumPy RGB image array."""
 
     @property
     def name(self) -> str:
@@ -56,8 +56,10 @@ class DecodeStage(PipelineStage):
 
     async def process(self, ctx: PipelineContext) -> PipelineContext:
         if ctx.raw_jpeg is not None:
-            img = Image.open(io.BytesIO(ctx.raw_jpeg)).convert("RGB")
-            ctx.frame.image = np.array(img)
+            nparr = np.frombuffer(ctx.raw_jpeg, np.uint8)
+            bgr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            if bgr is not None:
+                ctx.frame.image = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
         return ctx
 
 
@@ -212,10 +214,10 @@ class AnnotateStage(PipelineStage):
                 )
 
         if ctx.frame.image is not None:
-            out_img = Image.fromarray(ctx.frame.image)
-            buf = io.BytesIO()
-            out_img.save(buf, format="JPEG", quality=80)
-            ctx.processed_jpeg = buf.getvalue()
+            bgr = cv2.cvtColor(ctx.frame.image, cv2.COLOR_RGB2BGR)
+            ok, enc = cv2.imencode(".jpg", bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 75])
+            if ok:
+                ctx.processed_jpeg = enc.tobytes()
 
         return ctx
 

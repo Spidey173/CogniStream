@@ -53,8 +53,8 @@ function App() {
 
       {error && <div className="error-banner">{error}</div>}
 
-      {/* Webcam capture → WebSocket streamer */}
-      <VideoStreamer />
+      {/* Webcam capture → WebSocket streamer (optimized for cloud streaming) */}
+      <VideoStreamer fps={8} quality={0.6} width={480} height={360} />
 
       {/* Main content */}
       <div className="main-grid">
