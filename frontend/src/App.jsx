@@ -3,7 +3,8 @@ import "./App.css";
 import "./VideoStreamer.css";
 import VideoStreamer from "./VideoStreamer";
 
-const API = import.meta.env.VITE_API_URL || "";
+const RAW_API = import.meta.env.VITE_API_URL || "";
+const API = RAW_API ? RAW_API.replace(/\/$/, "") : "";
 const STREAM_URL = `${API}/api/v1/video`;
 const ROI_URL = `${API}/api/v1/roi/latest`;
 const POLL_INTERVAL = 1000;
@@ -67,6 +68,7 @@ function App() {
             <img
               src={STREAM_URL}
               alt="Live face detection stream"
+              crossOrigin="anonymous"
               onLoad={() => setStreamOk(true)}
               onError={() => setStreamOk(false)}
             />
