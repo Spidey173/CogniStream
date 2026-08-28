@@ -167,13 +167,20 @@ async def receive_stream(websocket: WebSocket, camera_id: str = "default"):
                         "confidence": round(det.confidence, 3),
                     })
 
-            # Ack back to camera client with instant real-time AI face analysis
+            # Prepare processed annotated frame base64 for instant client rendering
+            frame_b64 = None
+            if vision_pipeline and ctx and ctx.processed_jpeg:
+                import base64
+                frame_b64 = base64.b64encode(ctx.processed_jpeg).decode("ascii")
+
+            # Ack back to camera client with instant real-time AI face analysis and live frame
             await websocket.send_json({
                 "status": "ok",
                 "camera_id": camera_id,
                 "frame_id": frame_id,
                 "faces": len(detections_payload),
                 "detections": detections_payload,
+                "frame_b64": frame_b64,
                 "ts": datetime.now(timezone.utc).isoformat(),
             })
 

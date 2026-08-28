@@ -163,8 +163,8 @@ export default function VideoStreamer({
       try {
         if (typeof event.data === "string") {
           const payload = JSON.parse(event.data);
-          if (payload.detections && onAnalysisUpdate) {
-            onAnalysisUpdate(payload.detections);
+          if (onAnalysisUpdate) {
+            onAnalysisUpdate(payload.detections || [], payload.frame_b64 || null);
           }
         }
       } catch (err) {

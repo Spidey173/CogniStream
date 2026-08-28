@@ -65,6 +65,8 @@ function App() {
     return () => clearInterval(intervalRef.current);
   }, []);
 
+  const [liveFrame, setLiveFrame] = useState(null);
+
   const handleStatusChange = (status) => {
     if (status === "streaming") {
       setStreamKey(Date.now());
@@ -73,16 +75,21 @@ function App() {
     } else if (status === "idle" || status === "error") {
       setStreamOk(false);
       setLiveAnalysis(null);
+      setLiveFrame(null);
     }
   };
 
-  const handleAnalysisUpdate = (detections) => {
+  const handleAnalysisUpdate = (detections, frameB64) => {
     if (Array.isArray(detections)) {
       if (detections.length > 0) {
         setLiveAnalysis(detections[0]);
       } else {
         setLiveAnalysis(null);
       }
+    }
+    if (frameB64) {
+      setLiveFrame(`data:image/jpeg;base64,${frameB64}`);
+      setStreamOk(true);
     }
   };
 
@@ -126,15 +133,23 @@ function App() {
             <span>📹</span> Live AI Annotated Stream (Face Detection & Emotion Neural Mesh)
           </div>
           <div className="video-container">
-            <img
-              key={streamKey}
-              src={`${STREAM_URL}?t=${streamKey}`}
-              alt="Live face detection stream"
-              crossOrigin="anonymous"
-              onLoad={() => setStreamOk(true)}
-              onError={() => setStreamOk(false)}
-            />
-            {!streamOk && (
+            {liveFrame ? (
+              <img
+                src={liveFrame}
+                alt="Live AI Annotated Stream"
+                className="live-ai-frame"
+              />
+            ) : (
+              <img
+                key={streamKey}
+                src={`${STREAM_URL}?t=${streamKey}`}
+                alt="Live face detection stream"
+                crossOrigin="anonymous"
+                onLoad={() => setStreamOk(true)}
+                onError={() => {}}
+              />
+            )}
+            {!streamOk && !liveFrame && (
               <div className="video-placeholder">
                 <span>📡</span>
                 Click "Start Camera" above to begin real-time face condition analysis
