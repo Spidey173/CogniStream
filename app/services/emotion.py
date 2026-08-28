@@ -51,7 +51,7 @@ HSEMOTION_CLASSES: List[str] = [
 IMAGENET_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape(1, 1, 3)
 IMAGENET_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape(1, 1, 3)
 
-OFFICIAL_MODEL_URL = "https://github.com/HSE-asavchenko/face-emotion-recognition/raw/main/models/affectnet_emotions/onnx/enet_b0_8_best_vgaf.onnx"
+OFFICIAL_MODEL_URL = "https://raw.githubusercontent.com/HSE-asavchenko/face-emotion-recognition/main/models/affectnet_emotions/onnx/enet_b0_8_best_vgaf.onnx"
 DEFAULT_MODEL_FILENAME = "enet_b0_8_best_vgaf.onnx"
 
 # Two-tier blur thresholds (Laplacian variance)
@@ -277,28 +277,48 @@ class HSEmotionONNXClassifier:
         # Performance tracking
         self.perf_tracker = PerformanceTracker(window_size=100)
 
-        if model_path is None:
-            base_dir = os.path.dirname(__file__)
-            model_path = os.path.join(base_dir, DEFAULT_MODEL_FILENAME)
+        self.model_path = model_path
+        self.load_error: Optional[str] = None
 
-        self._ensure_model_exists(model_path)
-        self._init_session(model_path)
+        if self.model_path is None:
+            base_dir = os.path.dirname(__file__)
+            self.model_path = os.path.join(base_dir, DEFAULT_MODEL_FILENAME)
+
+        self._ensure_model_exists(self.model_path)
+        self._init_session(self.model_path)
 
     def _ensure_model_exists(self, model_path: str) -> None:
         """Download official model weights from GitHub if missing locally."""
-        if not os.path.exists(model_path):
+        if not os.path.exists(model_path) or os.path.getsize(model_path) < 1000:
             try:
-                logger.info("Downloading official HSEmotion ONNX model from GitHub to %s...", model_path)
+                logger.info("Downloading official HSEmotion ONNX model from %s to %s...", OFFICIAL_MODEL_URL, model_path)
                 os.makedirs(os.path.dirname(model_path), exist_ok=True)
-                urllib.request.urlretrieve(OFFICIAL_MODEL_URL, model_path)
+                req = urllib.request.Request(
+                    OFFICIAL_MODEL_URL,
+                    headers={"User-Agent": "Mozilla/5.0 (CogniStream/2.0)"},
+                )
+                with urllib.request.urlopen(req, timeout=25) as resp, open(model_path, "wb") as f:
+                    f.write(resp.read())
                 logger.info("Downloaded HSEmotion model successfully (%d bytes).", os.path.getsize(model_path))
             except Exception as e:
-                logger.error("Failed downloading official HSEmotion ONNX model: %s", e, exc_info=True)
+                self.load_error = f"Model download failed: {e}"
+                logger.error(
+                    "🚨 CRITICAL: Failed downloading official HSEmotion ONNX model from %s: %s",
+                    OFFICIAL_MODEL_URL,
+                    e,
+                    exc_info=True,
+                )
 
     def _init_session(self, model_path: str) -> None:
         """Initialize ONNX Runtime Session and dynamically inspect input/output shapes."""
-        if not _ONNX_AVAILABLE or not os.path.exists(model_path):
-            logger.warning("ONNX Runtime or model file unavailable (%s).", model_path)
+        if not _ONNX_AVAILABLE:
+            self.load_error = "onnxruntime package is not installed"
+            logger.error("🚨 CRITICAL: ONNX Runtime library is not installed in the current environment.")
+            return
+
+        if not os.path.exists(model_path) or os.path.getsize(model_path) < 1000:
+            self.load_error = f"Model file missing or corrupt at {model_path}"
+            logger.error("🚨 CRITICAL: HSEmotion ONNX model file does not exist at %s.", model_path)
             return
 
         try:
@@ -323,8 +343,9 @@ class HSEmotionONNXClassifier:
                     self.target_width = shape[3]
 
             self.is_loaded = True
+            self.load_error = None
             logger.info(
-                "Initialized HSEmotion ONNX Session (input='%s' [%dx%d], output='%s', providers=%s)",
+                "✅ HSEmotion ONNX Session loaded successfully (input='%s' [%dx%d], output='%s', providers=%s)",
                 self.input_name,
                 self.target_width,
                 self.target_height,
@@ -332,7 +353,13 @@ class HSEmotionONNXClassifier:
                 providers,
             )
         except Exception as e:
-            logger.error("Failed initializing ONNX Session for HSEmotion: %s", e, exc_info=True)
+            self.load_error = f"ONNX InferenceSession initialization error: {e}"
+            logger.error(
+                "🚨 CRITICAL: Failed initializing ONNX Session for HSEmotion from %s: %s",
+                model_path,
+                e,
+                exc_info=True,
+            )
 
     def _save_debug_crops(
         self,
@@ -408,8 +435,8 @@ class HSEmotionONNXClassifier:
             blur_hard_threshold=self.blur_hard_threshold,
         )
         if not passes:
-            logger.debug(
-                "Face quality rejected (track_id=%s): %s", track_id, reason
+            logger.info(
+                "Face crop quality rejected (track_id=%s): %s", track_id, reason
             )
             return None
 

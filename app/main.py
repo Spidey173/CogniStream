@@ -54,6 +54,18 @@ async def lifespan(app: FastAPI):
 
     # 3. Vision Pipeline Init
     stream_routes.init_detector()
+    from app.services.emotion import emotion_classifier
+    if emotion_classifier.is_loaded:
+        logger.info(
+            "🧠 Emotion Classifier Status: LOADED (model_path='%s')",
+            emotion_classifier.model_path,
+        )
+    else:
+        logger.error(
+            "🚨 Emotion Classifier Status: FAILED TO LOAD (model_path='%s', error='%s')",
+            emotion_classifier.model_path,
+            emotion_classifier.load_error,
+        )
 
     # 4. Batch Processor Init
     await roi_batch_processor.start()

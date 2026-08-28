@@ -18,12 +18,32 @@ settings = get_settings()
 @router.get("/health", summary="Liveness probe")
 async def health_check():
     """Returns status 200 OK if service process is alive."""
-    return {"status": "healthy", "service": settings.APP_NAME, "env": settings.ENVIRONMENT}
+    from app.services.emotion import emotion_classifier
+    return {
+        "status": "healthy",
+        "service": settings.APP_NAME,
+        "env": settings.ENVIRONMENT,
+        "emotion_classifier": "loaded" if emotion_classifier.is_loaded else "unloaded",
+    }
+
+
+@router.get("/health/emotion", summary="Emotion Classifier health status")
+async def emotion_health_check():
+    """Returns detailed runtime status, model path, and classes for HSEmotion ONNX classifier."""
+    from app.services.emotion import emotion_classifier, HSEMOTION_CLASSES
+    return {
+        "is_loaded": emotion_classifier.is_loaded,
+        "model_path": getattr(emotion_classifier, "model_path", "unknown"),
+        "classes": HSEMOTION_CLASSES,
+        "target_input_size": [emotion_classifier.target_width, emotion_classifier.target_height],
+        "load_error": getattr(emotion_classifier, "load_error", None),
+        "perf_stats": emotion_classifier.perf_tracker.get_stats(),
+    }
 
 
 @router.get("/ready", summary="Readiness probe")
 async def readiness_check():
-    """Verifies infrastructure connections (PostgreSQL & Redis)."""
+    """Verifies infrastructure connections (PostgreSQL, Redis, Emotion Classifier)."""
     db_ok = False
     redis_ok = False
 
@@ -42,11 +62,13 @@ async def readiness_check():
     else:
         redis_ok = True  # InMemory mode is ready
 
+    from app.services.emotion import emotion_classifier
     status_str = "ready" if (db_ok and redis_ok) else "degraded"
     return {
         "status": status_str,
         "database": "connected" if db_ok else "disconnected",
         "redis": "connected" if redis_ok else "in-memory-fallback",
+        "emotion_classifier": "loaded" if emotion_classifier.is_loaded else "unloaded",
     }
 
 
