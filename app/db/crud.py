@@ -92,7 +92,7 @@ async def fetch_latest_roi(
     query = select(FaceDetection)
     if camera_id:
         query = query.where(FaceDetection.camera_id == camera_id)
-    query = query.order_by(FaceDetection.timestamp.desc()).limit(limit)
+    query = query.order_by(FaceDetection.id.desc()).limit(limit)
     result = await db.execute(query)
     return list(result.scalars().all())
 

@@ -7,7 +7,7 @@ const RAW_API = import.meta.env.VITE_API_URL || "";
 const API = RAW_API ? RAW_API.replace(/\/$/, "") : "";
 const STREAM_URL = `${API}/api/v1/video`;
 const ROI_URL = `${API}/api/v1/roi/latest`;
-const POLL_INTERVAL = 1000;
+const POLL_INTERVAL = 250; // Ultra-responsive 4Hz live update
 
 const formatNum = (num, decimals = 3) =>
   typeof num === "number" && !isNaN(num) ? num.toFixed(decimals) : "—";
@@ -58,7 +58,7 @@ function App() {
         <h1>CogniStream AI</h1>
         <div className={`status-badge ${streamOk ? "" : "offline"}`}>
           <span className="status-dot" />
-          {streamOk ? "Live" : "Waiting"}
+          {streamOk ? "Live AI Processing" : "Waiting"}
         </div>
       </header>
 
@@ -78,7 +78,7 @@ function App() {
         {/* Video panel */}
         <div className="video-panel">
           <div className="video-panel-header">
-            <span>📹</span> Live Feed
+            <span>📹</span> Live Processed Feed (MediaPipe AI Detection)
           </div>
           <div className="video-container">
             <img
@@ -100,26 +100,50 @@ function App() {
 
         {/* ROI Dashboard */}
         <aside className="roi-dashboard">
-          {/* Latest detection card */}
+          {/* Latest detection card with live visual position bars */}
           <div className="roi-card">
-            <div className="roi-card-title">Latest Detection</div>
+            <div className="roi-card-title">Live Face Coordinates</div>
             {latest ? (
               <div className="stat-grid">
                 <div className="stat-item">
-                  <span className="stat-label">X</span>
+                  <span className="stat-label">X Position</span>
                   <span className="stat-value">{formatNum(latest.x)}</span>
+                  <div className="metric-bar-bg">
+                    <div
+                      className="metric-bar-fill"
+                      style={{ width: `${Math.min(100, Math.max(0, latest.x * 100))}%` }}
+                    />
+                  </div>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-label">Y</span>
+                  <span className="stat-label">Y Position</span>
                   <span className="stat-value">{formatNum(latest.y)}</span>
+                  <div className="metric-bar-bg">
+                    <div
+                      className="metric-bar-fill"
+                      style={{ width: `${Math.min(100, Math.max(0, latest.y * 100))}%` }}
+                    />
+                  </div>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-label">Width</span>
+                  <span className="stat-label">Face Width</span>
                   <span className="stat-value accent">{formatNum(latest.width)}</span>
+                  <div className="metric-bar-bg">
+                    <div
+                      className="metric-bar-fill accent"
+                      style={{ width: `${Math.min(100, Math.max(0, latest.width * 100))}%` }}
+                    />
+                  </div>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-label">Height</span>
+                  <span className="stat-label">Face Height</span>
                   <span className="stat-value accent">{formatNum(latest.height)}</span>
+                  <div className="metric-bar-bg">
+                    <div
+                      className="metric-bar-fill accent"
+                      style={{ width: `${Math.min(100, Math.max(0, latest.height * 100))}%` }}
+                    />
+                  </div>
                 </div>
               </div>
             ) : (
@@ -127,14 +151,25 @@ function App() {
             )}
           </div>
 
-          {/* Confidence card */}
+          {/* Confidence card with live gauge bar */}
           <div className="roi-card">
-            <div className="roi-card-title">Confidence</div>
+            <div className="roi-card-title">Detection Confidence</div>
             {latest ? (
               <div className="stat-item">
-                <span className="stat-value" style={{ fontSize: "1.6rem" }}>
-                  {formatConf(latest.confidence)}
-                </span>
+                <div className="confidence-row">
+                  <span className="stat-value" style={{ fontSize: "1.6rem" }}>
+                    {formatConf(latest.confidence)}
+                  </span>
+                  {latest.track_id != null && (
+                    <span className="track-badge">ID #{latest.track_id}</span>
+                  )}
+                </div>
+                <div className="metric-bar-bg" style={{ height: "8px", marginTop: "8px" }}>
+                  <div
+                    className="metric-bar-fill green"
+                    style={{ width: `${Math.min(100, Math.max(0, (latest.confidence || 0) * 100))}%` }}
+                  />
+                </div>
               </div>
             ) : (
               <div className="empty-state">—</div>
@@ -143,7 +178,7 @@ function App() {
 
           {/* Recent detections list */}
           <div className="roi-card">
-            <div className="roi-card-title">Recent Detections</div>
+            <div className="roi-card-title">Real-Time Event Stream</div>
             {roiData.length > 0 ? (
               <ul className="roi-list">
                 {roiData.map((roi, i) => (
@@ -158,7 +193,7 @@ function App() {
                 ))}
               </ul>
             ) : (
-              <div className="empty-state">Waiting for data...</div>
+              <div className="empty-state">Waiting for stream data...</div>
             )}
           </div>
         </aside>

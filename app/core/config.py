@@ -26,9 +26,9 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@db:5432/facedetect"
     DATABASE_URL_SYNC: str = "postgresql+psycopg2://postgres:postgres@db:5432/facedetect"
 
-    # Database Batching
-    BATCH_SIZE: int = 50
-    BATCH_FLUSH_INTERVAL: float = 2.0  # seconds
+    # Database Batching (Ultra-fast 200ms real-time flush)
+    BATCH_SIZE: int = 5
+    BATCH_FLUSH_INTERVAL: float = 0.2  # seconds
 
     # --- Redis Pub/Sub ---
     REDIS_URL: Optional[str] = "redis://redis:6379/0"
