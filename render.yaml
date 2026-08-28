@@ -1,21 +1,20 @@
 services:
   # ---------------------------------------------------------------------------
-  # FastAPI Computer Vision Backend
+  # FastAPI Computer Vision Backend (Native Python)
   # ---------------------------------------------------------------------------
   - type: web
     name: cognistream-backend
-    runtime: docker
+    runtime: python
     plan: free
     region: oregon
-    dockerfilePath: ./Dockerfile
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
     healthCheckPath: /health
     envVars:
       - key: ENVIRONMENT
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: cognistream-db
-          property: connectionString
+        value: postgresql://neondb_owner:npg_AGs3zgUYIqm8@ep-cold-union-ae0qi9d0-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require
       - key: API_KEY
         value: dev-secret-api-key
       - key: ALLOWED_ORIGINS
@@ -30,35 +29,3 @@ services:
         value: mediapipe
       - key: REDIS_URL
         value: "" # Uses resilient InMemoryMessageBus fallback when empty
-
-  # ---------------------------------------------------------------------------
-  # React + Vite Frontend (Static CDN)
-  # ---------------------------------------------------------------------------
-  - type: web
-    name: cognistream-frontend
-    runtime: static
-    plan: free
-    region: oregon
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: ./frontend/dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: cognistream-backend
-          property: host
-      - key: VITE_API_KEY
-        value: dev-secret-api-key
-
-# ---------------------------------------------------------------------------
-# Render PostgreSQL Database (Optional if using external DB like Neon)
-# ---------------------------------------------------------------------------
-databases:
-  - name: cognistream-db
-    plan: free
-    databaseName: facedetect
-    user: postgres
