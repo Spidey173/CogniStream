@@ -56,7 +56,7 @@ function App() {
         setRoiData(Array.isArray(data) ? data : []);
         setError(null);
       } catch (err) {
-        setError("Cannot reach backend ROI server");
+        setError("Connecting to backend server (Render free instances take ~20s to wake up if sleeping)...");
       }
     }
 
@@ -69,6 +69,7 @@ function App() {
     if (status === "streaming") {
       setStreamKey(Date.now());
       setStreamOk(true);
+      setError(null);
     } else if (status === "idle" || status === "error") {
       setStreamOk(false);
       setLiveAnalysis(null);
@@ -76,19 +77,20 @@ function App() {
   };
 
   const handleAnalysisUpdate = (detections) => {
-    if (Array.isArray(detections) && detections.length > 0) {
-      setLiveAnalysis(detections[0]);
+    if (Array.isArray(detections)) {
+      if (detections.length > 0) {
+        setLiveAnalysis(detections[0]);
+      } else {
+        setLiveAnalysis(null);
+      }
     }
   };
 
-  // Use live per-frame analysis when available, otherwise fallback to DB record
-  const latestDb = roiData.length > 0 ? roiData[0] : null;
-  const active = liveAnalysis || latestDb;
-
-  const currentEmotion = liveAnalysis?.emotion || "Analyzing...";
-  const currentCondition = liveAnalysis?.condition || (active ? "Face Detected & Tracked" : "Searching for Face...");
-  const currentEmotionConf = liveAnalysis?.emotion_confidence || (active?.confidence ? active.confidence * 100 : 0);
-  const probabilities = liveAnalysis?.probabilities || {};
+  const active = liveAnalysis;
+  const currentEmotion = active?.emotion || (streamOk ? "No Face Detected" : "Camera Offline");
+  const currentCondition = active?.condition || (streamOk ? "Position face in camera view" : "Click Start Camera to begin");
+  const currentEmotionConf = active?.emotion_confidence || 0;
+  const probabilities = active?.probabilities || {};
 
   return (
     <div className="app">

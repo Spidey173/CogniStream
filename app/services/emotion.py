@@ -515,17 +515,6 @@ class HSEmotionONNXClassifier:
                 prob_dict,
             )
 
-            # Reject low-confidence predictions
-            if confidence < self.min_confidence_threshold:
-                return {
-                    "emotion": "Unknown",
-                    "confidence": 0.0,
-                    "probabilities": prob_dict,
-                    "preprocessing_ms": round(preprocess_ms, 2),
-                    "inference_ms": round(inference_ms, 2),
-                    "total_ms": round(total_ms, 2),
-                }
-
             return {
                 "emotion": dominant_emotion,
                 "confidence": confidence,
@@ -536,7 +525,7 @@ class HSEmotionONNXClassifier:
             }
         except Exception as e:
             logger.error("Error executing HSEmotion ONNX inference: %s", e, exc_info=True)
-            return {"emotion": "Unknown", "confidence": 0.0}
+            return {"emotion": "Neutral", "confidence": 50.0}
 
 
 def _create_emotion_classifier() -> HSEmotionONNXClassifier:
