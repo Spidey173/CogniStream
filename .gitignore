@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Caches & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Environments
+.venv/
+env/
+venv/
+ENV/
+.env
+
+# Database & SQLite
+facedetect.db
+*.db
+*.sqlite3
+
+# Node & Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+.ds_store
+.DS_Store
+
+# Benchmark & Debug outputs
+benchmark_report.json
+debug_crops/
+
+# Heavy ONNX & MediaPipe Task Model downloads (downloaded automatically at runtime)
+*.onnx
+*.task

@@ -1,0 +1,64 @@
+services:
+  # ---------------------------------------------------------------------------
+  # FastAPI Computer Vision Backend
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: cognistream-backend
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cognistream-db
+          property: connectionString
+      - key: API_KEY
+        value: dev-secret-api-key
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: BATCH_SIZE
+        value: "50"
+      - key: BATCH_FLUSH_INTERVAL
+        value: "2.0"
+      - key: DETECTION_CONFIDENCE
+        value: "0.5"
+      - key: DETECTOR_TYPE
+        value: mediapipe
+      - key: REDIS_URL
+        value: "" # Uses resilient InMemoryMessageBus fallback when empty
+
+  # ---------------------------------------------------------------------------
+  # React + Vite Frontend (Static CDN)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: cognistream-frontend
+    runtime: static
+    plan: free
+    region: oregon
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: cognistream-backend
+          property: host
+      - key: VITE_API_KEY
+        value: dev-secret-api-key
+
+# ---------------------------------------------------------------------------
+# Render PostgreSQL Database (Optional if using external DB like Neon)
+# ---------------------------------------------------------------------------
+databases:
+  - name: cognistream-db
+    plan: free
+    databaseName: facedetect
+    user: postgres
