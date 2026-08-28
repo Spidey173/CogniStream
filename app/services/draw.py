@@ -1,10 +1,10 @@
 """
-Draw bounding boxes on frames using NumPy (fast in-place array slicing) or PIL (when text labels are requested).
+Draw bounding boxes and HUD annotations on frames using high-performance OpenCV.
 """
 
 from typing import Optional, Tuple
+import cv2
 import numpy as np
-from PIL import Image, ImageDraw
 
 
 BBox = Tuple[int, int, int, int]  # (x_min, y_min, x_max, y_max)
@@ -14,38 +14,55 @@ def draw_bbox(
     frame: np.ndarray,
     bbox: BBox,
     color: Tuple[int, int, int] = (0, 255, 0),
-    thickness: int = 3,
+    thickness: int = 2,
     label: Optional[str] = None,
 ) -> np.ndarray:
     """
-    Draw a rectangle and optional text label on an RGB uint8 frame array. Modifies in-place.
+    Draw a sleek bounding box and optional text banner on an RGB/BGR frame array in-place.
     """
     x_min, y_min, x_max, y_max = bbox
     h, w = frame.shape[:2]
-    t = thickness
 
-    # Clamp coordinates
-    x_min = max(0, x_min)
-    y_min = max(0, y_min)
-    x_max = min(w, x_max)
-    y_max = min(h, y_max)
+    x1 = max(0, min(w - 1, int(x_min)))
+    y1 = max(0, min(h - 1, int(y_min)))
+    x2 = max(0, min(w - 1, int(x_max)))
+    y2 = max(0, min(h - 1, int(y_max)))
 
-    # Top edge
-    frame[y_min : min(h, y_min + t), x_min:x_max] = color
-    # Bottom edge
-    frame[max(0, y_max - t) : y_max, x_min:x_max] = color
-    # Left edge
-    frame[y_min:y_max, x_min : min(w, x_min + t)] = color
-    # Right edge
-    frame[y_min:y_max, max(0, x_max - t) : x_max] = color
+    if x2 <= x1 or y2 <= y1:
+        return frame
+
+    # Draw main rectangle
+    cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness)
+
+    # Draw corner brackets for tech HUD styling
+    corner_len = min(15, (x2 - x1) // 3, (y2 - y1) // 3)
+    if corner_len > 3:
+        cv2.line(frame, (x1, y1), (x1 + corner_len, y1), color, thickness + 1)
+        cv2.line(frame, (x1, y1), (x1, y1 + corner_len), color, thickness + 1)
+        cv2.line(frame, (x2, y1), (x2 - corner_len, y1), color, thickness + 1)
+        cv2.line(frame, (x2, y1), (x2, y1 + corner_len), color, thickness + 1)
+        cv2.line(frame, (x1, y2), (x1 + corner_len, y2), color, thickness + 1)
+        cv2.line(frame, (x1, y2), (x1, y2 - corner_len), color, thickness + 1)
+        cv2.line(frame, (x2, y2), (x2 - corner_len, y2), color, thickness + 1)
+        cv2.line(frame, (x2, y2), (x2, y2 - corner_len), color, thickness + 1)
 
     if label:
-        try:
-            pil_img = Image.fromarray(frame)
-            draw = ImageDraw.Draw(pil_img)
-            draw.text((x_min + t + 2, max(0, y_min - 15)), label, fill=color)
-            frame[:] = np.array(pil_img)[:]
-        except Exception:
-            pass
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 0.45
+        font_thick = 1
+        (tw, th), baseline = cv2.getTextSize(label, font, font_scale, font_thick)
+        bg_y1 = max(0, y1 - th - 6)
+        bg_y2 = y1
+        cv2.rectangle(frame, (x1, bg_y1), (x1 + tw + 6, bg_y2), color, -1)
+        cv2.putText(
+            frame,
+            label,
+            (x1 + 3, max(th + 2, y1 - 4)),
+            font,
+            font_scale,
+            (0, 0, 0),  # dark text on bright green background
+            font_thick,
+            cv2.LINE_AA,
+        )
 
     return frame

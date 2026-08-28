@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     # --- Vision & Detection ---
     DETECTOR_TYPE: str = "mediapipe"  # "mediapipe" or "mock"
-    DETECTION_CONFIDENCE: float = 0.5
+    DETECTION_CONFIDENCE: float = 0.35
     MAX_VIEWERS: int = 50
 
     # --- Emotion Preprocessing ---

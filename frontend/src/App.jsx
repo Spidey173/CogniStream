@@ -19,6 +19,7 @@ function App() {
   const [roiData, setRoiData] = useState([]);
   const [streamOk, setStreamOk] = useState(false);
   const [error, setError] = useState(null);
+  const [streamKey, setStreamKey] = useState(Date.now());
   const intervalRef = useRef(null);
 
   useEffect(() => {
@@ -39,6 +40,15 @@ function App() {
     return () => clearInterval(intervalRef.current);
   }, []);
 
+  const handleStatusChange = (status) => {
+    if (status === "streaming") {
+      setStreamKey(Date.now());
+      setStreamOk(true);
+    } else if (status === "idle" || status === "error") {
+      setStreamOk(false);
+    }
+  };
+
   const latest = roiData.length > 0 ? roiData[0] : null;
 
   return (
@@ -55,7 +65,13 @@ function App() {
       {error && <div className="error-banner">{error}</div>}
 
       {/* Webcam capture → WebSocket streamer (optimized for cloud streaming) */}
-      <VideoStreamer fps={8} quality={0.6} width={480} height={360} />
+      <VideoStreamer
+        fps={8}
+        quality={0.6}
+        width={480}
+        height={360}
+        onStatusChange={handleStatusChange}
+      />
 
       {/* Main content */}
       <div className="main-grid">
@@ -66,7 +82,8 @@ function App() {
           </div>
           <div className="video-container">
             <img
-              src={STREAM_URL}
+              key={streamKey}
+              src={`${STREAM_URL}?t=${streamKey}`}
               alt="Live face detection stream"
               crossOrigin="anonymous"
               onLoad={() => setStreamOk(true)}
