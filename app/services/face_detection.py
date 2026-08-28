@@ -309,7 +309,7 @@ def get_detector(name: str, **kwargs) -> BaseDetector:
         return _DETECTOR_REGISTRY[key](**kwargs)
     except Exception as e:
         logger.error("Failed to initialize detector '%s': %s. Falling back to MockDetector.", key, e)
-        return MockDetector(simulate_face=False)
+        return MockDetector(simulate_face=True)
 
 
 def list_detectors() -> List[Dict[str, str]]:
