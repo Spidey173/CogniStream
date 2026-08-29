@@ -121,8 +121,19 @@ export default function VideoStreamer({
       return;
     }
 
+    // Dynamically preserve native camera aspect ratio (e.g. 16:9 / 4:3)
+    const vw = video.videoWidth || 640;
+    const vh = video.videoHeight || 480;
+    const targetW = 640;
+    const targetH = Math.round((vh / vw) * targetW) || 360;
+
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+      canvas.width = targetW;
+      canvas.height = targetH;
+    }
+
     const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, targetW, targetH);
 
     // Convert to JPEG blob, then send as binary
     canvas.toBlob(

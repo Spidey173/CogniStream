@@ -56,14 +56,16 @@ function App() {
         setRoiData(Array.isArray(data) ? data : []);
         setError(null);
       } catch (err) {
-        setError("Connecting to backend server (Render free instances take ~20s to wake up if sleeping)...");
+        if (!streamOk) {
+          setError("Connecting to backend server (Render free instances take ~20s to wake up if sleeping)...");
+        }
       }
     }
 
     fetchROI();
     intervalRef.current = setInterval(fetchROI, POLL_INTERVAL);
     return () => clearInterval(intervalRef.current);
-  }, []);
+  }, [streamOk]);
 
   const [liveFrame, setLiveFrame] = useState(null);
 
@@ -90,6 +92,7 @@ function App() {
     if (frameB64) {
       setLiveFrame(`data:image/jpeg;base64,${frameB64}`);
       setStreamOk(true);
+      setError(null);
     }
   };
 
@@ -113,14 +116,12 @@ function App() {
         </div>
       </header>
 
-      {error && <div className="error-banner">{error}</div>}
+      {error && !streamOk && <div className="error-banner">{error}</div>}
 
       {/* Webcam capture → WebSocket streamer */}
       <VideoStreamer
-        fps={8}
-        quality={0.6}
-        width={480}
-        height={360}
+        fps={10}
+        quality={0.65}
         onStatusChange={handleStatusChange}
         onAnalysisUpdate={handleAnalysisUpdate}
       />
