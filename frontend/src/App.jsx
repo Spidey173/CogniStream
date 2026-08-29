@@ -118,46 +118,15 @@ function App() {
 
       {error && !streamOk && <div className="error-banner">{error}</div>}
 
-      {/* Webcam capture → WebSocket streamer */}
-      <VideoStreamer
-        fps={10}
-        quality={0.65}
-        onStatusChange={handleStatusChange}
-        onAnalysisUpdate={handleAnalysisUpdate}
-      />
-
       {/* Main content */}
       <div className="main-grid">
-        {/* Video panel */}
-        <div className="video-panel">
-          <div className="video-panel-header">
-            <span>📹</span> Live AI Annotated Stream (Face Detection & Emotion Neural Mesh)
-          </div>
-          <div className="video-container">
-            {liveFrame ? (
-              <img
-                src={liveFrame}
-                alt="Live AI Annotated Stream"
-                className="live-ai-frame"
-              />
-            ) : (
-              <img
-                key={streamKey}
-                src={`${STREAM_URL}?t=${streamKey}`}
-                alt="Live face detection stream"
-                crossOrigin="anonymous"
-                onLoad={() => setStreamOk(true)}
-                onError={() => {}}
-              />
-            )}
-            {!streamOk && !liveFrame && (
-              <div className="video-placeholder">
-                <span>📡</span>
-                Click "Start Camera" above to begin real-time face condition analysis
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Unified Real-Time AI Vision Screen with HUD Tracking */}
+        <VideoStreamer
+          fps={12}
+          quality={0.65}
+          onStatusChange={handleStatusChange}
+          onAnalysisUpdate={handleAnalysisUpdate}
+        />
 
         {/* Cognitive Condition & ROI Dashboard */}
         <aside className="roi-dashboard">

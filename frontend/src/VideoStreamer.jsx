@@ -59,12 +59,72 @@ export default function VideoStreamer({
   // Refs for mutable resources that survive re-renders
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const overlayCanvasRef = useRef(null);
   const wsRef = useRef(null);
   const streamRef = useRef(null);
   const intervalRef = useRef(null);
   const reconnectTimer = useRef(null);
   const reconnectAttempt = useRef(0);
   const unmounted = useRef(false);
+
+  // ── Draw live AI HUD annotations directly on video overlay ──
+  const drawAnnotations = useCallback((detections) => {
+    const overlay = overlayCanvasRef.current;
+    const video = videoRef.current;
+    if (!overlay || !video) return;
+
+    const vw = video.clientWidth || 640;
+    const vh = video.clientHeight || 480;
+    if (overlay.width !== vw || overlay.height !== vh) {
+      overlay.width = vw;
+      overlay.height = vh;
+    }
+
+    const ctx = overlay.getContext("2d");
+    ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+    if (!Array.isArray(detections) || detections.length === 0) return;
+
+    for (const det of detections) {
+      const x = det.x * vw;
+      const y = det.y * vh;
+      const bw = det.width * vw;
+      const bh = det.height * vh;
+
+      // Draw outer bounding box
+      ctx.strokeStyle = "#22c55e";
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(x, y, bw, bh);
+
+      // Draw corner brackets
+      const corner = Math.min(bw, bh) * 0.2;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      // Top-Left
+      ctx.moveTo(x, y + corner); ctx.lineTo(x, y); ctx.lineTo(x + corner, y);
+      // Top-Right
+      ctx.moveTo(x + bw - corner, y); ctx.lineTo(x + bw, y); ctx.lineTo(x + bw, y + corner);
+      // Bottom-Left
+      ctx.moveTo(x, y + bh - corner); ctx.lineTo(x, y + bh); ctx.lineTo(x + corner, y + bh);
+      // Bottom-Right
+      ctx.moveTo(x + bw - corner, y + bh); ctx.lineTo(x + bw, y + bh); ctx.lineTo(x + bw, y + bh - corner);
+      ctx.stroke();
+
+      // Label background
+      const em = det.emotion || "Neutral";
+      const conf = (det.emotion_confidence || 0).toFixed(1);
+      const label = `ID #${det.track_id ?? 1} | ${em} (${conf}%)`;
+      ctx.font = "bold 13px system-ui, -apple-system, sans-serif";
+      const textWidth = ctx.measureText(label).width;
+
+      ctx.fillStyle = "rgba(34, 197, 94, 0.95)";
+      ctx.fillRect(x, Math.max(0, y - 24), textWidth + 12, 24);
+
+      // Label text
+      ctx.fillStyle = "#000000";
+      ctx.fillText(label, x + 6, Math.max(0, y - 24) + 16);
+    }
+  }, []);
 
   // ── Refs that mirror state to avoid stale closures ──
   const activeRef = useRef(false);
@@ -104,7 +164,8 @@ export default function VideoStreamer({
       reconnectTimer.current = null;
     }
     reconnectAttempt.current = 0;
-  }, []);
+    drawAnnotations([]);
+  }, [drawAnnotations]);
 
   // ── Capture & send a single frame ──
   const captureFrame = useCallback(() => {
@@ -174,6 +235,7 @@ export default function VideoStreamer({
       try {
         if (typeof event.data === "string") {
           const payload = JSON.parse(event.data);
+          drawAnnotations(payload.detections || []);
           if (onAnalysisUpdate) {
             onAnalysisUpdate(payload.detections || [], payload.frame_b64 || null);
           }
@@ -318,6 +380,12 @@ export default function VideoStreamer({
           playsInline
           muted
           className={`streamer-video ${isLive ? "visible" : ""}`}
+        />
+
+        {/* Real-time AI HUD annotation overlay */}
+        <canvas
+          ref={overlayCanvasRef}
+          className="streamer-overlay-canvas"
         />
 
         {/* Hidden canvas for JPEG conversion */}
