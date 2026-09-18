@@ -1,0 +1,11 @@
+{
+  "name": "cognistream",
+  "version": "2.1.0",
+  "private": true,
+  "description": "Edge-Distributed Real-Time Vision & Emotion Engine",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "cd frontend && npm run dev",
+    "lint": "cd frontend && npm run lint"
+  }
+}
