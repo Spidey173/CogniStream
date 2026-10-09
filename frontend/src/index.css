@@ -1,0 +1,221 @@
+/* ─────────────────────────────────────────────────────────────
+   COGNISTREAM AI — DESIGN SYSTEM TOKEN ARCHITECTURE
+   Theme: Dark Red Magma • Luxury • Cinematic • High-End SaaS
+   Inspiration: Linear • Arc Browser • Stripe Dashboard • Vercel
+   ───────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap');
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* ── Canvas & Surfaces ── */
+  --bg-void: #070608;
+  --bg-base: #0b090d;
+  --bg-surface: #120f14;
+  --bg-surface-elevated: #171319;
+  --bg-surface-highlight: #1f1922;
+
+  --bg-card: rgba(18, 14, 20, 0.72);
+  --bg-card-hover: rgba(25, 20, 28, 0.86);
+  --bg-card-active: rgba(32, 25, 36, 0.94);
+  --bg-glass: rgba(14, 11, 16, 0.68);
+  --bg-input: rgba(10, 8, 12, 0.85);
+
+  /* ── Magma Red & Lava Orange Palette ── */
+  --magma-50: #ffebeb;
+  --magma-100: #ffd1d1;
+  --magma-200: #ffa6a6;
+  --magma-300: #ff6e6e;
+  --magma-400: #f74040;
+  --magma-500: #e52e2e;          /* Primary Deep Magma Red */
+  --magma-600: #c51d1d;
+  --magma-700: #9e1515;
+  --magma-800: #771212;
+  --magma-900: #4f0b0b;
+  --magma-glow: rgba(229, 46, 46, 0.32);
+  --magma-subtle: rgba(229, 46, 46, 0.08);
+  --magma-subtle-border: rgba(229, 46, 46, 0.22);
+  --magma-subtle-hover: rgba(229, 46, 46, 0.16);
+
+  --lava-orange: #ff6b35;         /* Accent Lava Orange */
+  --lava-orange-bright: #ff8252;
+  --lava-orange-glow: rgba(255, 107, 53, 0.3);
+  --lava-orange-subtle: rgba(255, 107, 53, 0.08);
+
+  --crimson-deep: #7a121d;        /* Highlights Dark Crimson */
+  --crimson-subtle: rgba(122, 18, 29, 0.2);
+
+  /* ── Functional / Status Tokens ── */
+  --emerald: #10b981;             /* Success */
+  --emerald-glow: rgba(16, 185, 129, 0.25);
+  --emerald-subtle: rgba(16, 185, 129, 0.1);
+
+  --amber: #f59e0b;               /* Warning */
+  --amber-glow: rgba(245, 158, 11, 0.25);
+  --amber-subtle: rgba(245, 158, 11, 0.1);
+
+  --cyan: #06b6d4;
+  --cyan-glow: rgba(6, 182, 212, 0.22);
+
+  --purple: #a855f7;
+  --purple-glow: rgba(168, 85, 247, 0.25);
+
+  /* ── Typography Colors ── */
+  --text-white: #faf7f5;          /* Warm White */
+  --text-primary: #f0eaeb;
+  --text-secondary: #a59ca0;
+  --text-muted: #6d6268;
+  --text-faint: #443c42;
+
+  /* ── Borders & Outlines ── */
+  --border-hairline: rgba(255, 255, 255, 0.05);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-card: rgba(255, 255, 255, 0.07);
+  --border-magma: rgba(229, 46, 46, 0.2);
+  --border-magma-hover: rgba(229, 46, 46, 0.45);
+  --border-lava: rgba(255, 107, 53, 0.35);
+
+  /* ── Shadows & Glows ── */
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.65);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.85);
+  --shadow-magma-pill: 0 4px 20px rgba(229, 46, 46, 0.25);
+  --shadow-magma-card: 0 10px 32px rgba(0, 0, 0, 0.7), 0 0 1px 1px rgba(229, 46, 46, 0.16);
+  --shadow-lava-glow: 0 0 25px rgba(255, 107, 53, 0.2);
+
+  /* ── Border Radii ── */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* ── Easing & Transitions ── */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Base Body Styles ── */
+html {
+  font-size: 16px;
+  background-color: var(--bg-void);
+  color-scheme: dark;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-void);
+  background-image:
+    /* Top-left deep magma ember glow */
+    radial-gradient(circle at 10% -5%, rgba(229, 46, 46, 0.14) 0%, transparent 42%),
+    /* Top-right lava orange horizon glow */
+    radial-gradient(circle at 90% 10%, rgba(255, 107, 53, 0.08) 0%, transparent 38%),
+    /* Center bottom dark crimson depth */
+    radial-gradient(circle at 50% 100%, rgba(122, 18, 29, 0.12) 0%, transparent 48%),
+    /* Subtle high-tech precision grid lines */
+    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+  background-attachment: fixed;
+  color: var(--text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+/* ── Typography System ── */
+h1, h2, h3, h4, .brand-font {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+.font-display {
+  font-family: 'Syne', 'Outfit', sans-serif;
+}
+
+code, pre, .stat-value, .spectrum-val, .pose-badge strong, .legend-value, .mono-data {
+  font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  font-feature-settings: 'tnum' on, 'zero' on;
+}
+
+/* ── Selection ── */
+::selection {
+  background: rgba(229, 46, 46, 0.35);
+  color: #ffffff;
+}
+
+/* ── Scrollbars (Custom Magma Track & Glow) ── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(11, 9, 13, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(229, 46, 46, 0.25);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 53, 0.45);
+}
+
+/* ── Keyframe Animations ── */
+@keyframes magmaPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 10px var(--magma-500);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.92);
+    box-shadow: 0 0 4px var(--magma-500);
+  }
+}
+
+@keyframes lavaEmberFloat {
+  0% { transform: translateY(0px) scale(1); opacity: 0.8; }
+  50% { transform: translateY(-4px) scale(1.05); opacity: 1; }
+  100% { transform: translateY(0px) scale(1); opacity: 0.8; }
+}
+
+@keyframes scanlineSweep {
+  0% { top: 0%; opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { top: 100%; opacity: 0.3; }
+}
+
+@keyframes shimmerGlow {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes subtleRadarSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ── Universal Accessibility Focus ── */
+:focus-visible {
+  outline: 2px solid var(--magma-500);
+  outline-offset: 2px;
+}
