@@ -1,0 +1,10 @@
+# Testing dependencies (install alongside requirements.txt)
+pytest==8.3.3
+httpx==0.27.2
+aiosqlite==0.20.0
+Pillow==10.4.0
+pytest-timeout==2.3.1
+python-multipart
+prometheus-client>=0.20.0
+numpy>=1.26.0
+opencv-python-headless>=4.9.0.80
